@@ -1,8 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:test_project/screens/details_screen.dart';
+import 'package:test_project/utils/string_ext.dart';
+import '../data/BlogData.dart';
+import '../widgets/CircleProgress.dart';
 
 
 class HomeScreen extends StatefulWidget{
@@ -14,57 +14,81 @@ class HomeScreen extends StatefulWidget{
 
 class _HomeScreenState extends State<HomeScreen>{
 
-  List<dynamic> products = [];
-
-  _HomeScreenState(){
-    fetchData();
-  }
-
   @override
   Widget build(BuildContext context) {
      return Scaffold(
-       appBar: AppBar(title: const Text("List Screen")),
+       appBar: AppBar(title: const Text("Blogs")),
        body:  Container(
          padding: const EdgeInsets.all(0),
-         child: Expanded(
-           child: ListView.builder(
-               itemCount: products.length,
-               itemBuilder: (context, index) {
-                 final product = products[index];
-                 return ListTile(
-                   onTap: (){
-                     Navigator.push(
-                       context,
-                       MaterialPageRoute(
-                           builder: (context) => const DetailsScreen()
-                       ),
-                     );
-                   },
-                   title: Text("${product['title']}"),
-                   subtitle: Text(product['category']),
-                   leading: Container(
-                     padding: const EdgeInsets.all(5),
-                     child: Image.network(
-                       product['image'],
-                       width: 50,
-                     ),
-                   ),
-                 );
-               }
-           ),
+         child: FutureBuilder(
+           future: BlogData.getPosts(),
+           builder: (context, snapshot){
+             if(snapshot.connectionState == ConnectionState.waiting){
+               return const CircleProgress();
+             }else if(snapshot.hasData){
+               final posts = snapshot.data ?? [];
+               return Expanded(
+                 child: ListView.builder(
+                     itemCount: posts.length,
+                     itemBuilder: (context, index) {
+                       final post = posts[index];
+                       return ListTile(
+                         onTap: (){
+                           Navigator.push(
+                             context,
+                             MaterialPageRoute(
+                                 builder: (context) => DetailsScreen(
+                                   clickedId: post.id?.toString() ?? "",
+                                 )
+                             ),
+                           );
+                         },
+                         title: Text(
+                           post.title?.capitalize() ?? "",
+                           style: const TextStyle(
+                               color: Colors.black87,
+                               fontWeight: FontWeight.w600
+                           ),
+                         ),
+                         subtitle: Text(
+                           post.body?.capitalize() ?? "",
+                           maxLines: 1,
+                           overflow: TextOverflow.ellipsis,
+                           style: const TextStyle(
+                               color: Colors.black45,
+                               fontWeight: FontWeight.w400
+                           ),
+                         ),
+                         leading: Container(
+                           width : 35,
+                           height : 35,
+                           decoration: const BoxDecoration(
+                             color: Colors.blue,
+                             shape: BoxShape.circle,
+                           ),
+                           child: Center(
+                             child: Text(
+                               (index+1).toString(),
+                               style: const TextStyle(
+                                   color: Colors.white
+                               ),
+                             ),
+                           ),
+                         ),
+                       );
+                     }
+                 ),
+               );
+             }else{
+               return const Text(
+                 "Nothing to shwo"
+               );
+             }
+           },
          )
        )
      );
   }
 
-  fetchData() async{
-    String url = "https://fakestoreapi.com/products";
-    Uri uri = Uri.parse(url);
-    final response = await http.get(uri);
-    final body =  response.body ;
-    final json = jsonDecode(body);
-    setState(() {
-      products = json;
-    });
-  }
 }
+
