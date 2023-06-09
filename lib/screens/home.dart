@@ -4,7 +4,6 @@ import 'package:test_project/utils/string_ext.dart';
 import '../data/BlogData.dart';
 import '../widgets/CircleProgress.dart';
 
-
 class HomeScreen extends StatefulWidget{
   const HomeScreen({super.key});
 
@@ -81,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen>{
                );
              }else{
                return const Text(
-                 "Nothing to shwo"
+                 "Nothing to show"
                );
              }
            },
@@ -89,6 +88,6 @@ class _HomeScreenState extends State<HomeScreen>{
        )
      );
   }
-
 }
+
 

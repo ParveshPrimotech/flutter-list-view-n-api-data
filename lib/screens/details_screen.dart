@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:test_project/data/BlogData.dart';
 import 'package:test_project/widgets/CircleProgress.dart';
@@ -76,23 +75,8 @@ class _DetailsScreenState extends State<DetailsScreen>{
                             showModalBottomSheet<void>(
                                 context: context,
                                 builder: (BuildContext context) {
-                                  return Container(
-                                    height: 200,
-                                    padding: const EdgeInsets.all(15),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        const Text(
-                                          'Comments',
-                                          style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w600
-                                          ),
-                                        ),
-                                        Container(height: 15),
-                                        Container(height: 15)
-                                      ],
-                                    ),
+                                  return CommentBottomSheet(
+                                      postId : widget.clickedId
                                   );
                                 });
                           },
@@ -117,12 +101,87 @@ class _DetailsScreenState extends State<DetailsScreen>{
               );
             } else{
               return const Text(
-                  "Nothing to shwo"
+                  "Nothing to show"
               );
             }
           },
         ),
       )
+    );
+  }
+}
+
+
+class CommentBottomSheet extends StatefulWidget{
+
+  const CommentBottomSheet({super.key, required this.postId});
+
+  final String postId;
+
+  @override
+  State<StatefulWidget> createState() =>_CommentBottomSheetState();
+}
+
+class _CommentBottomSheetState extends State<CommentBottomSheet>{
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const Text(
+            'Comments',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600
+            ),
+          ),
+          Container(height: 15),
+          FutureBuilder(
+              future: BlogData.getComments(widget.postId),
+              builder: (context, snapshot){
+                if(snapshot.connectionState == ConnectionState.waiting){
+                  return Container();
+                }else if(snapshot.hasData){
+                  final comments = snapshot.data ?? [];
+                  return Expanded(
+                      child: ListView.builder(
+                          itemCount : comments.length,
+                          itemBuilder: (context, index) {
+                            final comment = comments[index];
+                            return ListTile(
+                              title: Text(
+                                  comment.name?.capitalize() ?? "",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87
+                                  ),
+                              ),
+                              subtitle: Text(
+                                  comment.body?.capitalize() ?? "",
+                                  style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black54
+                                  ),
+                              ),
+                            );
+                          }
+                      )
+                  );
+                }else{
+                  return const Expanded(
+                      child: Center(
+                        child: Text("No comments yet"),
+                      )
+                  );
+                }
+              },
+          ),
+          Container(height: 15)
+        ],
+      ),
     );
   }
 }
